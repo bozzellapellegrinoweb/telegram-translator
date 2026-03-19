@@ -14,6 +14,25 @@ DEST_CHANNEL = os.environ["DEST_CHANNEL"]
 claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
+def is_listing(text: str) -> bool:
+    message = claude.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=10,
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    "Rispondi solo YES o NO. "
+                    "Il seguente testo è un annuncio immobiliare (vendita o affitto di proprietà)? "
+                    "Rispondi NO se è: una richiesta di acquisto/affitto, un messaggio di chat, un saluto, una domanda generica, spam.\n\n"
+                    f"{text}"
+                ),
+            }
+        ],
+    )
+    return message.content[0].text.strip().upper().startswith("YES")
+
+
 def translate(text: str) -> str:
     message = claude.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -54,6 +73,9 @@ async def main():
                 text = msg.text or getattr(msg, 'caption', None)
                 if not text or len(text.strip()) < 20:
                     continue
+                if not is_listing(text):
+                    print(f"  [skip] Non è un annuncio")
+                    continue
                 try:
                     translated = translate(text)
                     if msg.media:
@@ -76,6 +98,10 @@ async def main():
         text = msg.text or getattr(msg, 'caption', None)
 
         if not text or len(text.strip()) < 20:
+            return
+
+        if not is_listing(text):
+            print(f"Skippato: non è un annuncio")
             return
 
         print(f"\n--- Nuovo annuncio da {event.chat.username} ---")
