@@ -33,12 +33,40 @@ def translate(text: str) -> str:
     return message.content[0].text
 
 
+BACKFILL_COUNT = 10  # messaggi da recuperare per canale all'avvio
+
+
 async def main():
     client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
     await client.connect()
 
     print(f"Connesso. In ascolto su: {SOURCE_CHANNELS}")
     print(f"Pubblico su: @{DEST_CHANNEL}")
+
+    # Recupera ultimi messaggi da ogni canale
+    for channel in SOURCE_CHANNELS:
+        print(f"\nRecupero ultimi {BACKFILL_COUNT} messaggi da {channel}...")
+        try:
+            count = 0
+            async for msg in client.iter_messages(channel, limit=BACKFILL_COUNT):
+                text = msg.text or msg.caption
+                if not text or len(text.strip()) < 20:
+                    continue
+                try:
+                    translated = translate(text)
+                    if msg.media:
+                        await client.send_file(DEST_CHANNEL, msg.media, caption=translated)
+                    else:
+                        await client.send_message(DEST_CHANNEL, translated)
+                    count += 1
+                    print(f"  [{count}] Pubblicato")
+                except Exception as e:
+                    print(f"  Errore: {e}")
+            print(f"  Recupero completato: {count} messaggi pubblicati")
+        except Exception as e:
+            print(f"  Errore canale {channel}: {e}")
+
+    print("\nIn ascolto per nuovi messaggi...")
 
     @client.on(events.NewMessage(chats=SOURCE_CHANNELS))
     async def handler(event):
