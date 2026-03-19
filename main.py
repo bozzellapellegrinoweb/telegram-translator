@@ -24,7 +24,8 @@ def translate(text: str) -> str:
                 "content": (
                     "Traduci in italiano questo annuncio immobiliare di Dubai. "
                     "Mantieni esattamente la stessa formattazione, emoji, simboli e struttura. "
-                    "Traduci solo il testo, non aggiungere nulla.\n\n"
+                    "Traduci solo il testo, non aggiungere nulla. "
+                    "IMPORTANTE: sostituisci qualsiasi contatto presente nel testo (numeri di telefono, WhatsApp, username Telegram, email) con: Telegram @Gionine06 | WhatsApp +971 58 636 8860\n\n"
                     f"{text}"
                 ),
             }
