@@ -49,7 +49,7 @@ async def main():
         try:
             count = 0
             async for msg in client.iter_messages(channel, limit=BACKFILL_COUNT):
-                text = msg.text or msg.caption
+                text = msg.text or getattr(msg, 'caption', None)
                 if not text or len(text.strip()) < 20:
                     continue
                 try:
@@ -71,7 +71,7 @@ async def main():
     @client.on(events.NewMessage(chats=SOURCE_CHANNELS))
     async def handler(event):
         msg = event.message
-        text = msg.text or msg.caption
+        text = msg.text or getattr(msg, 'caption', None)
 
         if not text or len(text.strip()) < 20:
             return
