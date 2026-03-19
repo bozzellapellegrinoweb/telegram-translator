@@ -42,10 +42,12 @@ def translate(text: str) -> str:
                 "role": "user",
                 "content": (
                     "Traduci in italiano questo annuncio immobiliare di Dubai. "
+                    "Rispondi SOLO con il testo tradotto, senza commenti, spiegazioni o prefazioni. "
                     "Mantieni esattamente la stessa formattazione, emoji, simboli e struttura. "
-                    "Traduci solo il testo, non aggiungere nulla. "
-                    "IMPORTANTE: sostituisci qualsiasi contatto presente nel testo (numeri di telefono, WhatsApp, username Telegram, email) con: Telegram @Gionine06 | WhatsApp +971 58 636 8860. "
-                    "Rimuovi qualsiasi riferimento alla fonte originale: link a canali Telegram (es. t.me/...), nomi di canali/agenzie sorgente, watermark o tag del canale originale.\n\n"
+                    "IMPORTANTE: "
+                    "1) Sostituisci qualsiasi contatto (numeri di telefono, WhatsApp, username Telegram, email) con: Telegram @Gionine06 | WhatsApp +971 58 636 8860. "
+                    "2) Rimuovi qualsiasi riferimento alla fonte originale: link t.me/..., nomi di canali/agenzie, watermark. "
+                    "3) Rimuovi qualsiasi menzione di commissioni, percentuali di agenzia (es. 2%, 3% commission, agency fee).\n\n"
                     f"{text}"
                 ),
             }
