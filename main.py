@@ -34,7 +34,7 @@ def translate(text: str) -> str:
     return message.content[0].text
 
 
-BACKFILL_COUNT = 10  # messaggi da recuperare per canale all'avvio
+BACKFILL_COUNT = 20  # messaggi da recuperare per canale all'avvio
 
 
 async def main():
