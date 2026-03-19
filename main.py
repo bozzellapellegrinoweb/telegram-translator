@@ -5,7 +5,7 @@ from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 import anthropic
 
-load_dotenv()
+load_dotenv(dotenv_path='/app/.env')
 
 API_ID = int(os.environ["TELEGRAM_API_ID"])
 API_HASH = os.environ["TELEGRAM_API_HASH"]
