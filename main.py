@@ -1,7 +1,9 @@
 import os
 import asyncio
+import re
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
+from telethon.tl.types import MessageEntityTextUrl, MessageEntityUrl, MessageEntityMention
 import anthropic
 
 API_ID = int(os.environ["TELEGRAM_API_ID"])
@@ -12,6 +14,36 @@ SOURCE_CHANNELS = [ch.strip() for ch in os.environ["SOURCE_CHANNELS"].split(",")
 DEST_CHANNEL = os.environ["DEST_CHANNEL"]
 
 claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+
+def extract_clean_text(msg) -> str:
+    """Rimuove entità Telegram (link t.me, menzioni) dal testo del messaggio."""
+    text = msg.text or getattr(msg, 'caption', None) or ''
+    entities = msg.entities or []
+
+    # Trova span da rimuovere (link t.me e menzioni @)
+    spans = []
+    for e in entities:
+        if isinstance(e, MessageEntityTextUrl) and ('t.me' in e.url or 'telegram' in e.url):
+            spans.append((e.offset, e.offset + e.length))
+        elif isinstance(e, MessageEntityMention):
+            spans.append((e.offset, e.offset + e.length))
+        elif isinstance(e, MessageEntityUrl):
+            url_text = text[e.offset:e.offset + e.length]
+            if 't.me' in url_text or 'telegram.me' in url_text:
+                spans.append((e.offset, e.offset + e.length))
+
+    # Rimuovi da destra a sinistra per non spostare gli offset
+    spans.sort(reverse=True)
+    chars = list(text)
+    for start, end in spans:
+        chars[start:end] = []
+
+    # Rimuovi anche URL t.me rimasti come testo semplice
+    clean = ''.join(chars)
+    clean = re.sub(r'https?://t\.me/\S+', '', clean)
+    clean = re.sub(r't\.me/\S+', '', clean)
+    return clean.strip()
 
 
 def is_listing(text: str) -> bool:
@@ -72,7 +104,7 @@ async def main():
         try:
             count = 0
             async for msg in client.iter_messages(channel, limit=BACKFILL_COUNT):
-                text = msg.text or getattr(msg, 'caption', None)
+                text = extract_clean_text(msg)
                 if not text or len(text.strip()) < 20:
                     continue
                 if not is_listing(text):
@@ -97,7 +129,7 @@ async def main():
     @client.on(events.NewMessage(chats=SOURCE_CHANNELS))
     async def handler(event):
         msg = event.message
-        text = msg.text or getattr(msg, 'caption', None)
+        text = extract_clean_text(msg)
 
         if not text or len(text.strip()) < 20:
             return
